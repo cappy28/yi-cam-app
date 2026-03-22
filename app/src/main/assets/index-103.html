@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>YiControl</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --teal:#00BFA5;--teal2:#00897B;--navy:#0D3B6E;--navy2:#1A5276;
+  --bg:#F4F6F8;--white:#FFFFFF;--text:#111;--text2:#555;--text3:#999;
+  --border:#E8ECF0;--red:#E53935;
+  --font:'Inter',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
+
+/* NAV BAR */
+.navbar{
+  position:fixed;bottom:0;left:0;right:0;height:60px;
+  background:var(--white);border-top:1px solid var(--border);
+  display:flex;z-index:200;
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;cursor:pointer;font-size:11px;font-weight:500;color:var(--text3);
+  transition:color .2s;
+}
+.nav-item.active{color:var(--teal)}
+.nav-icon{font-size:22px;line-height:1}
+
+/* PAGE WRAPPER */
+.page{display:none;padding-bottom:70px;min-height:100vh}
+.page.active{display:block}
+
+/* ====== HOME ====== */
+.home-banner{
+  position:relative;height:160px;overflow:hidden;
+  background:linear-gradient(135deg,#0D3B6E 0%,#1A5276 60%,#00897B 100%);
+}
+.home-banner::after{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Ccircle cx='20' cy='20' r='40' fill='rgba(255,255,255,0.04)'/%3E%3Ccircle cx='80' cy='70' r='30' fill='rgba(255,255,255,0.03)'/%3E%3C/svg%3E") center/cover;
+}
+.home-banner-text{
+  position:absolute;bottom:20px;left:20px;z-index:1;
+}
+.home-banner-text h1{font-size:26px;font-weight:800;color:#fff;letter-spacing:-.3px}
+.home-banner-text p{font-size:13px;color:rgba(255,255,255,.7);margin-top:2px}
+.home-banner-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:64px;opacity:.15}
+
+.home-section{padding:16px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-header-left{display:flex;align-items:center;gap:8px}
+.section-header-left h2{font-size:16px;font-weight:700}
+.section-arrow{font-size:12px;color:var(--text3)}
+.add-btn{
+  width:36px;height:36px;border-radius:50%;border:2px solid var(--navy);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:var(--navy);cursor:pointer;background:transparent;
+  transition:all .2s;
+}
+.add-btn:active{background:var(--navy);color:#fff}
+
+/* Camera card */
+.cam-card{
+  background:var(--white);border-radius:14px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:10px;cursor:pointer;
+}
+.cam-card-preview{
+  position:relative;aspect-ratio:16/9;background:#1a2535;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.cam-card-preview canvas{position:absolute;inset:0;width:100%;height:100%}
+.cam-card-preview-offline{background:#E8ECF0;justify-content:center}
+.cam-play-btn{
+  position:absolute;width:48px;height:48px;border-radius:50%;
+  background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:#fff;z-index:2;
+}
+.cam-card-bottom{padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.cam-card-name{font-size:14px;font-weight:600}
+.cam-card-loc{font-size:12px;color:var(--text3);margin-top:1px}
+.cam-card-status{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600}
+.status-dot{width:7px;height:7px;border-radius:50%}
+.dot-live{background:#00C853;animation:pulse 1.5s infinite}
+.dot-offline{background:var(--text3)}
+.dot-motion{background:#FF6D00;animation:blink .6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes blink{50%{opacity:0}}
+
+/* Empty state */
+.empty-state{text-align:center;padding:50px 20px}
+.empty-state .icon{font-size:64px;opacity:.2;margin-bottom:12px}
+.empty-state p{font-size:14px;color:var(--text3);line-height:1.6}
+
+/* Tutorial card */
+.tuto-card{
+  background:var(--white);border-radius:14px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:10px;
+  display:flex;align-items:center;gap:14px;padding:14px;cursor:pointer;
+}
+.tuto-icon{font-size:32px}
+.tuto-text{}
+.tuto-title{font-size:14px;font-weight:600}
+.tuto-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.tuto-arrow{margin-left:auto;font-size:18px;color:var(--text3)}
+
+/* ====== ACTIVITÉ ====== */
+.page-title{font-size:22px;font-weight:800;padding:20px 16px 12px;background:var(--white);border-bottom:1px solid var(--border)}
+.filters-bar{
+  background:var(--white);padding:10px 16px;display:flex;gap:8px;
+  border-bottom:1px solid var(--border);overflow-x:auto;
+}
+.filters-bar::-webkit-scrollbar{display:none}
+.filter-pill{
+  display:flex;align-items:center;gap:4px;padding:7px 12px;
+  border-radius:20px;border:1px solid var(--border);background:var(--bg);
+  font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;white-space:nowrap;
+  position:relative;
+}
+.filter-pill select{
+  position:absolute;inset:0;opacity:0;width:100%;cursor:pointer;font-size:16px;
+}
+
+.activity-list{padding:12px 16px}
+.activity-item{
+  background:var(--white);border-radius:12px;padding:12px 14px;
+  display:flex;align-items:center;gap:12px;margin-bottom:8px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);
+}
+.activity-item.unread{border-left:3px solid var(--teal)}
+.activity-thumb{
+  width:56px;height:40px;border-radius:8px;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;
+}
+.activity-body{flex:1;min-width:0}
+.activity-title{font-size:13px;font-weight:600}
+.activity-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.activity-tag{
+  padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;
+  background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;flex-shrink:0;
+}
+
+/* ====== COMPTE ====== */
+.compte-header{padding:20px 16px 12px;background:var(--white);border-bottom:1px solid var(--border)}
+.compte-header h1{font-size:22px;font-weight:800}
+.compte-email{font-size:13px;color:var(--text3);margin-top:2px}
+
+.kamicloud-card{
+  margin:16px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);
+  padding:18px;color:#fff;
+}
+.kc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.kc-brand{font-size:20px;font-weight:800;letter-spacing:-.3px}
+.kc-brand span{color:var(--teal);font-style:italic}
+.kc-sub{font-size:12px;opacity:.7;margin-top:2px}
+.kc-manage-btn{
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+  color:#fff;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;
+}
+.kc-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 0;border-top:1px solid rgba(255,255,255,.12);
+  font-size:14px;cursor:pointer;
+}
+.kc-row-icon{margin-right:2px}
+
+.compte-group{
+  background:var(--white);border-radius:14px;margin:0 16px 12px;
+  overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);
+}
+.compte-row{
+  display:flex;align-items:center;gap:14px;padding:14px 16px;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;
+  position:relative;
+}
+.compte-row:last-child{border-bottom:none}
+.compte-row:active{background:var(--bg)}
+.compte-row-icon{
+  width:36px;height:36px;border-radius:10px;background:var(--navy);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+.compte-row-text{flex:1}
+.compte-row-name{font-size:14px;font-weight:500}
+.compte-row-arrow{font-size:16px;color:var(--text3)}
+.notif-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0}
+
+/* ====== LIVE VIEW ====== */
+.live-page{display:none;position:fixed;inset:0;background:#000;z-index:300;flex-direction:column}
+.live-page.open{display:flex}
+.live-topbar{
+  padding:12px 16px;display:flex;align-items:center;gap:12px;
+  background:rgba(0,0,0,.6);position:absolute;top:0;left:0;right:0;z-index:1;
+}
+.live-back{color:#fff;font-size:24px;cursor:pointer}
+.live-title{color:#fff;font-size:15px;font-weight:600;flex:1}
+.live-rec-badge{
+  display:flex;align-items:center;gap:5px;background:rgba(229,57,53,.8);
+  padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;color:#fff;
+}
+.live-video-area{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
+.live-video-area canvas{width:100%;height:100%;object-fit:contain}
+.live-controls{
+  background:rgba(0,0,0,.8);padding:16px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.ptz-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+.ptz-grid{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);gap:6px}
+.ptz-key{
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:#fff;
+  transition:all .15s;
+}
+.ptz-key:active{background:rgba(0,191,165,.3);border-color:var(--teal)}
+.ptz-home{background:rgba(0,191,165,.2);border-color:var(--teal);font-size:14px;font-weight:700;color:var(--teal)}
+.live-actions{display:flex;gap:8px;justify-content:center}
+.live-btn{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:10px 16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+  border-radius:12px;color:#fff;font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;
+}
+.live-btn:active{background:rgba(0,191,165,.3)}
+.live-btn-icon{font-size:22px}
+.live-btn.recording{background:rgba(229,57,53,.3);border-color:var(--red)}
+
+/* ====== ADD CAM ====== */
+.addcam-page{display:none;position:fixed;inset:0;background:var(--bg);z-index:300;flex-direction:column}
+.addcam-page.open{display:flex;flex-direction:column}
+.addcam-header{
+  background:var(--white);padding:14px 16px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid var(--border);
+}
+.back-btn{font-size:22px;cursor:pointer;color:var(--text)}
+.addcam-header h2{font-size:17px;font-weight:700}
+.addcam-body{flex:1;overflow-y:auto;padding:16px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block}
+.form-input{
+  width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:10px;
+  background:var(--white);font-family:var(--font);font-size:14px;color:var(--text);outline:none;
+}
+.form-input:focus{border-color:var(--teal)}
+.form-submit{
+  width:100%;padding:14px;background:var(--teal);color:#fff;border:none;
+  border-radius:12px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;
+}
+.scan-btn{
+  width:100%;padding:12px;background:var(--navy);color:#fff;border:none;
+  border-radius:12px;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px;
+}
+.or-divider{text-align:center;color:var(--text3);font-size:13px;margin:14px 0;position:relative}
+.or-divider::before,.or-divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:var(--border)}
+.or-divider::before{left:0}.or-divider::after{right:0}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(12px);
+  background:#222;color:#fff;border-radius:10px;padding:10px 18px;
+  font-size:13px;font-weight:500;opacity:0;pointer-events:none;
+  transition:all .25s;z-index:999;white-space:nowrap;
+  box-shadow:0 4px 12px rgba(0,0,0,.3);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* REC TIMER */
+.rec-timer-bar{
+  display:none;align-items:center;gap:8px;
+  background:#FFF3F3;border-bottom:2px solid var(--red);
+  padding:8px 16px;font-size:13px;font-weight:600;color:var(--red);
+}
+.rec-timer-bar.active{display:flex}
+.rec-pulse{width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 1s infinite;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- ===== HOME ===== -->
+<div class="page active" id="page-home">
+  <div class="home-banner">
+    <div class="home-banner-text">
+      <h1>Bienvenue</h1>
+      <p>Votre système de sécurité</p>
+    </div>
+    <div class="home-banner-icon">🏠</div>
+  </div>
+
+  <div class="home-section">
+    <div class="section-header">
+      <div class="section-header-left">
+        <span class="section-arrow">▼</span>
+        <h2>Appareils photo</h2>
+      </div>
+      <button class="add-btn" onclick="openAddCam()">＋</button>
+    </div>
+    <div id="camList"></div>
+  </div>
+
+  <div class="home-section" style="padding-top:0">
+    <div class="section-header">
+      <div class="section-header-left">
+        <span>🔭</span>
+        <h2>Accès rapide</h2>
+      </div>
+    </div>
+    <div class="tuto-card" onclick="toast('📺 Tutoriel à venir')">
+      <div class="tuto-icon">📖</div>
+      <div class="tuto-text">
+        <div class="tuto-title">Guide de configuration</div>
+        <div class="tuto-sub">Comment connecter vos caméras Yi</div>
+      </div>
+      <div class="tuto-arrow">›</div>
+    </div>
+    <div class="tuto-card" onclick="toast('🌙 Mode nuit activé')">
+      <div class="tuto-icon">🌙</div>
+      <div class="tuto-text">
+        <div class="tuto-title">Mode nuit</div>
+        <div class="tuto-sub">Vision nocturne infrarouge</div>
+      </div>
+      <div class="tuto-arrow">›</div>
+    </div>
+    <div class="tuto-card" onclick="toast('📡 Vérification du réseau...')">
+      <div class="tuto-icon">📡</div>
+      <div class="tuto-text">
+        <div class="tuto-title">État du réseau</div>
+        <div class="tuto-sub">Vérifier la connexion des caméras</div>
+      </div>
+      <div class="tuto-arrow">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ACTIVITÉ ===== -->
+<div class="page" id="page-activite">
+  <div class="page-title" style="display:flex;align-items:center;justify-content:space-between">
+    <span>Activité</span>
+    <span style="font-size:20px;color:var(--teal);cursor:pointer" onclick="toast('✏️ Gérer')">✏️</span>
+  </div>
+  <div class="filters-bar">
+    <div class="filter-pill">
+      Toutes les cam… ▾
+      <select id="filterCam" onchange="renderActivity()">
+        <option value="">Toutes les caméras</option>
+      </select>
+    </div>
+    <div class="filter-pill">
+      Toutes les activi… ▾
+      <select id="filterType" onchange="renderActivity()">
+        <option value="">Toutes les activités</option>
+        <option value="mouvement">Mouvement</option>
+        <option value="son">Son</option>
+      </select>
+    </div>
+    <div class="filter-pill">
+      Aujourd'hui ▾
+      <select id="filterDate" onchange="renderActivity()">
+        <option>Aujourd'hui</option>
+        <option>7 derniers jours</option>
+        <option>Ce mois</option>
+      </select>
+    </div>
+  </div>
+  <div class="activity-list" id="activityList"></div>
+</div>
+
+<!-- ===== COMPTE ===== -->
+<div class="page" id="page-compte">
+  <div class="compte-header">
+    <h1>Compte</h1>
+    <div class="compte-email" id="compteEmail">lucasyt280@gmail.com</div>
+  </div>
+
+  <div class="kamicloud-card">
+    <div class="kc-top">
+      <div>
+        <div class="kc-brand">Kami<span>Cloud</span></div>
+        <div class="kc-sub">0 Abonnement Actif</div>
+      </div>
+      <button class="kc-manage-btn" onclick="toast('☁️ Gérer les abonnements')">Gérer les<br>abonnements</button>
+    </div>
+    <div class="kc-row" onclick="toast('🛒 Acheter un abonnement')">
+      <span>Acheter un autre abonnement</span><span>›</span>
+    </div>
+    <div class="kc-row" onclick="toast('📋 Historique des commandes')">
+      <span>Historique de la commande</span><span>›</span>
+    </div>
+  </div>
+
+  <div class="compte-group">
+    <div class="compte-row" onclick="toast('🏠 Paramètres Maison/Absent')">
+      <div class="compte-row-icon">🏠</div>
+      <div class="compte-row-text"><div class="compte-row-name">Paramètres Maison/Absent</div></div>
+      <div class="compte-row-arrow">›</div>
+    </div>
+  </div>
+
+  <div class="compte-group">
+    <div class="compte-row" onclick="toast('🤖 AI+ Services')">
+      <div class="compte-row-icon">⚙️</div>
+      <div class="compte-row-text"><div class="compte-row-name">AI+ Services</div></div>
+      <div class="compte-row-arrow">›</div>
+    </div>
+    <div class="compte-row" onclick="toast('⭐ Crédits de compte')">
+      <div class="compte-row-icon">⭐</div>
+      <div class="compte-row-text"><div class="compte-row-name">Crédits de compte</div></div>
+      <div class="compte-row-arrow">›</div>
+    </div>
+  </div>
+
+  <div class="compte-group">
+    <div class="compte-row" onclick="toast('🔔 Notifications')">
+      <div class="compte-row-icon">✉️</div>
+      <div class="compte-row-text"><div class="compte-row-name">Notifications</div></div>
+      <div class="notif-dot"></div>
+      <div class="compte-row-arrow">›</div>
+    </div>
+    <div class="compte-row" onclick="toast('🔗 Intégrations intelligentes')">
+      <div class="compte-row-icon">📊</div>
+      <div class="compte-row-text"><div class="compte-row-name">Intégrations intelligentes</div></div>
+      <div class="compte-row-arrow">›</div>
+    </div>
+    <div class="compte-row" onclick="toast('🖼 Album photo')">
+      <div class="compte-row-icon">🖼</div>
+      <div class="compte-row-text"><div class="compte-row-name">Album</div></div>
+      <div class="compte-row-arrow">›</div>
+    </div>
+  </div>
+
+  <div class="compte-group">
+    <div class="compte-row" onclick="toast('🎁 Mes Récompenses')">
+      <div class="compte-row-icon">🎁</div>
+      <div class="compte-row-text"><div class="compte-row-name">Mes Récompenses</div></div>
+      <div class="compte-row-arrow">›</div>
+    </div>
+    <div class="compte-row" onclick="toast('👤 Mon compte')">
+      <div class="compte-row-icon">👤</div>
+      <div class="compte-row-text"><div class="compte-row-name">Mon compte</div></div>
+      <div class="notif-dot"></div>
+      <div class="compte-row-arrow">›</div>
+    </div>
+    <div class="compte-row" onclick="toast('⚙️ Paramètres')">
+      <div class="compte-row-icon">⚙️</div>
+      <div class="compte-row-text"><div class="compte-row-name">Paramètres de l'application</div></div>
+      <div class="compte-row-arrow">›</div>
+    </div>
+    <div class="compte-row" onclick="toast('💬 Service Client')">
+      <div class="compte-row-icon">🎧</div>
+      <div class="compte-row-text"><div class="compte-row-name">Service Client</div></div>
+      <div class="compte-row-arrow">›</div>
+    </div>
+    <div class="compte-row" onclick="toast('❓ Aide et ressources')">
+      <div class="compte-row-icon">🆘</div>
+      <div class="compte-row-text"><div class="compte-row-name">Aide et ressources</div></div>
+      <div class="compte-row-arrow">›</div>
+    </div>
+    <div class="compte-row" onclick="toast('ℹ️ À propos')">
+      <div class="compte-row-icon">ℹ️</div>
+      <div class="compte-row-text"><div class="compte-row-name">À propos de</div></div>
+      <div class="compte-row-arrow">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-item active" id="nav-home" onclick="showPage('home')">
+    <div class="nav-icon">🏠</div>
+    <span>Home</span>
+  </div>
+  <div class="nav-item" id="nav-activite" onclick="showPage('activite')">
+    <div class="nav-icon">📹</div>
+    <span>Activité</span>
+  </div>
+  <div class="nav-item" id="nav-compte" onclick="showPage('compte')">
+    <div class="nav-icon">😊</div>
+    <span>Compte</span>
+  </div>
+</nav>
+
+<!-- LIVE VIEW -->
+<div class="live-page" id="livePage">
+  <div class="live-topbar">
+    <span class="live-back" onclick="closeLive()">‹</span>
+    <span class="live-title" id="liveTitle">Caméra</span>
+    <div class="live-rec-badge" id="liveRecBadge" style="display:none">
+      <span style="width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 1s infinite;display:inline-block"></span>
+      <span id="liveRecTimer">00:00</span>
+    </div>
+  </div>
+  <div class="live-video-area">
+    <canvas id="liveCanvas"></canvas>
+  </div>
+  <div class="live-controls">
+    <div class="live-actions">
+      <div class="live-btn" onclick="toggleLiveMute()" id="muteBtn">
+        <div class="live-btn-icon">🔇</div><span>Son</span>
+      </div>
+      <div class="live-btn" onclick="takeSnapshot()">
+        <div class="live-btn-icon">📸</div><span>Capture</span>
+      </div>
+      <div class="live-btn" id="recBtn" onclick="toggleRecording()">
+        <div class="live-btn-icon">⏺</div><span>Enreg.</span>
+      </div>
+      <div class="live-btn" onclick="toast('📡 Qualité changée')">
+        <div class="live-btn-icon">🎥</div><span>Qualité</span>
+      </div>
+    </div>
+    <div class="ptz-wrap">
+      <div class="ptz-grid">
+        <div class="ptz-key" onclick="ptz('↖')">↖</div>
+        <div class="ptz-key" onclick="ptz('▲')">▲</div>
+        <div class="ptz-key" onclick="ptz('↗')">↗</div>
+        <div class="ptz-key" onclick="ptz('◀')">◀</div>
+        <div class="ptz-key ptz-home" onclick="ptz('⌂')">⌂</div>
+        <div class="ptz-key" onclick="ptz('▶')">▶</div>
+        <div class="ptz-key" onclick="ptz('↙')">↙</div>
+        <div class="ptz-key" onclick="ptz('▼')">▼</div>
+        <div class="ptz-key" onclick="ptz('↘')">↘</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CAM -->
+<div class="addcam-page" id="addCamPage">
+  <div class="addcam-header">
+    <span class="back-btn" onclick="closeAddCam()">‹</span>
+    <h2>Ajouter une caméra</h2>
+  </div>
+  <div class="addcam-body">
+    <button class="scan-btn" onclick="toast('📷 Scanner QR code...')">
+      <span>▣</span> Scanner le QR code
+    </button>
+    <div class="or-divider">ou saisir manuellement</div>
+    <div class="form-group">
+      <label class="form-label">Nom de la caméra *</label>
+      <input class="form-input" id="newName" placeholder="ex : Entrée principale">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Emplacement</label>
+      <input class="form-input" id="newLoc" placeholder="ex : Extérieur">
+    </div>
+    <div class="form-group">
+      <label class="form-label">URL RTSP <span style="font-weight:400;color:var(--text3)">(après configuration)</span></label>
+      <input class="form-input" id="newRtsp" placeholder="rtsp://192.168.1.XX:554/...">
+    </div>
+    <button class="form-submit" onclick="addCamera()">Ajouter la caméra</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// STATE
+let cameras = [
+  {id:1, name:"Entrée", loc:"Rez-de-chaussée", rtsp:"", online:true,  motion:false},
+  {id:2, name:"Salon",  loc:"Intérieur",        rtsp:"", online:true,  motion:true},
+  {id:3, name:"Jardin", loc:"Extérieur",         rtsp:"", online:false, motion:false},
+];
+let activities = [
+  {id:1, cam:"Salon",  time:"Aujourd'hui 14h32", type:"mouvement", emoji:"🚶", unread:true},
+  {id:2, cam:"Entrée", time:"Aujourd'hui 12h10", type:"mouvement", emoji:"🚗", unread:true},
+  {id:3, cam:"Jardin", time:"Hier 23h55",        type:"son",       emoji:"🌿", unread:false},
+  {id:4, cam:"Salon",  time:"Hier 18h22",        type:"mouvement", emoji:"🐈", unread:false},
+];
+let camIdCounter = 4;
+let canvases = {};
+let liveActiveCam = null;
+let liveAnimId = null;
+let isRecording = false;
+let recInterval = null;
+let recSeconds = 0;
+let isMuted = true;
+
+// INIT
+function init() {
+  renderCamList();
+  renderActivity();
+  updateFilterCams();
+  setTimeout(simulateMotion, 20000);
+}
+
+// PAGES
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.getElementById('nav-' + id).classList.add('active');
+}
+
+// CAMERAS
+function renderCamList() {
+  const list = document.getElementById('camList');
+  if (!cameras.length) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">📷</div><p>Aucun appareil photo mis en place,<br>ajoutez en premier une caméra.</p></div>`;
+    return;
+  }
+  list.innerHTML = cameras.map(cam => {
+    const statusColor = cam.motion ? '#FF6D00' : cam.online ? '#00C853' : '#999';
+    const statusText  = cam.motion ? 'Mouvement' : cam.online ? 'En direct' : 'Hors ligne';
+    const dotClass    = cam.motion ? 'dot-motion' : cam.online ? 'dot-live' : 'dot-offline';
+    return `
+    <div class="cam-card" onclick="openLive(${cam.id})">
+      <div class="cam-card-preview${!cam.online ? ' cam-card-preview-offline' : ''}">
+        <canvas id="previewCanvas${cam.id}" width="320" height="180" style="display:${cam.online?'block':'none'};position:absolute;inset:0;width:100%;height:100%"></canvas>
+        ${!cam.online ? '<span style="font-size:48px;opacity:.2">📷</span>' : ''}
+        ${cam.online ? '<div class="cam-play-btn">▶</div>' : ''}
+      </div>
+      <div class="cam-card-bottom">
+        <div>
+          <div class="cam-card-name">${cam.name}</div>
+          <div class="cam-card-loc">${cam.loc}</div>
+        </div>
+        <div class="cam-card-status">
+          <div class="status-dot ${dotClass}"></div>
+          <span style="color:${statusColor}">${statusText}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  cameras.filter(c => c.online).forEach(c => startPreviewCanvas(c.id, c.motion));
+}
+
+function startPreviewCanvas(id, hasMotion) {
+  const canvas = document.getElementById('previewCanvas' + id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let frame = 0;
+  if (canvases[id]) cancelAnimationFrame(canvases[id]);
+  function draw() {
+    const w = canvas.width, h = canvas.height, t = frame / 60;
+    const g = ctx.createLinearGradient(0, 0, w, h);
+    g.addColorStop(0, `hsl(${215+Math.sin(t)*.5*5},35%,${9+Math.sin(t*.6)*2}%)`);
+    g.addColorStop(1, `hsl(${225+Math.cos(t*.4)*4},28%,${13+Math.cos(t)*1.5}%)`);
+    ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+    // grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.03)'; ctx.lineWidth = .5;
+    for(let x=0;x<w;x+=20){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
+    for(let y=0;y<h;y+=15){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+    // motion silhouette
+    if(hasMotion){
+      const mx = 100+Math.sin(t*.7)*40;
+      ctx.fillStyle='rgba(255,255,255,0.08)';
+      ctx.fillRect(mx-6,h*.35,12,h*.4);
+      ctx.beginPath();ctx.arc(mx,h*.3,9,0,Math.PI*2);ctx.fill();
+    }
+    // scanline
+    const sy=(frame*1.5)%h;
+    ctx.fillStyle='rgba(0,191,165,0.04)'; ctx.fillRect(0,sy,w,2);
+    // timestamp
+    ctx.fillStyle='rgba(255,255,255,.45)'; ctx.font='9px monospace';
+    ctx.fillText(new Date().toLocaleTimeString('fr-FR'), 6, h-6);
+    frame++; canvases[id] = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// LIVE
+function openLive(id) {
+  const cam = cameras.find(c => c.id === id);
+  if (!cam || !cam.online) { toast('⚠️ Caméra hors ligne'); return; }
+  liveActiveCam = cam;
+  document.getElementById('liveTitle').textContent = cam.name + ' — ' + cam.loc;
+  document.getElementById('livePage').classList.add('open');
+  startLiveCanvas();
+}
+function closeLive() {
+  document.getElementById('livePage').classList.remove('open');
+  if (liveAnimId) cancelAnimationFrame(liveAnimId);
+  if (isRecording) stopRecording();
+}
+function startLiveCanvas() {
+  const canvas = document.getElementById('liveCanvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight - 200;
+  const ctx = canvas.getContext('2d');
+  let frame = 0;
+  if (liveAnimId) cancelAnimationFrame(liveAnimId);
+  const hasMotion = liveActiveCam?.motion;
+  function draw() {
+    const w=canvas.width,h=canvas.height,t=frame/60;
+    const g=ctx.createLinearGradient(0,0,w,h);
+    g.addColorStop(0,`hsl(215,35%,${8+Math.sin(t*.6)*2}%)`);
+    g.addColorStop(1,`hsl(225,28%,${12+Math.cos(t)*1.5}%)`);
+    ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle='rgba(255,255,255,0.025)';ctx.lineWidth=.5;
+    for(let x=0;x<w;x+=24){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
+    for(let y=0;y<h;y+=18){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+    if(hasMotion){
+      const mx=w/2+Math.sin(t*.7)*60;
+      ctx.fillStyle='rgba(255,255,255,0.1)';
+      ctx.fillRect(mx-8,h*.35,16,h*.4);
+      ctx.beginPath();ctx.arc(mx,h*.3,12,0,Math.PI*2);ctx.fill();
+    }
+    const sy=(frame*1.5)%h;
+    ctx.fillStyle='rgba(0,191,165,0.04)';ctx.fillRect(0,sy,w,3);
+    ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='11px monospace';
+    ctx.fillText(new Date().toLocaleTimeString('fr-FR'),10,h-10);
+    ctx.fillText(liveActiveCam?.name||'',10,24);
+    frame++;liveAnimId=requestAnimationFrame(draw);
+  }
+  draw();
+}
+function ptz(dir){toast('🎯 PTZ → '+dir)}
+function toggleLiveMute(){
+  isMuted=!isMuted;
+  const btn=document.getElementById('muteBtn');
+  btn.querySelector('.live-btn-icon').textContent=isMuted?'🔇':'🔊';
+  toast(isMuted?'🔇 Son coupé':'🔊 Son activé');
+}
+function takeSnapshot(){toast('📸 Capture sauvegardée !')}
+function toggleRecording(){
+  if(!isRecording) startRecording(); else stopRecording();
+}
+function startRecording(){
+  isRecording=true; recSeconds=0;
+  document.getElementById('liveRecBadge').style.display='flex';
+  document.getElementById('recBtn').classList.add('recording');
+  recInterval=setInterval(()=>{
+    recSeconds++;
+    const m=String(Math.floor(recSeconds/60)).padStart(2,'0'),s=String(recSeconds%60).padStart(2,'0');
+    document.getElementById('liveRecTimer').textContent=m+':'+s;
+  },1000);
+  toast('⏺ Enregistrement démarré');
+}
+function stopRecording(){
+  isRecording=false; clearInterval(recInterval);
+  document.getElementById('liveRecBadge').style.display='none';
+  document.getElementById('recBtn').classList.remove('recording');
+  const m=String(Math.floor(recSeconds/60)).padStart(2,'0'),s=String(recSeconds%60).padStart(2,'0');
+  toast('💾 Vidéo sauvegardée ('+m+':'+s+')');
+}
+
+// ADD CAM
+function openAddCam(){document.getElementById('addCamPage').classList.add('open')}
+function closeAddCam(){document.getElementById('addCamPage').classList.remove('open')}
+function addCamera(){
+  const name=document.getElementById('newName').value.trim();
+  const loc=document.getElementById('newLoc').value.trim();
+  const rtsp=document.getElementById('newRtsp').value.trim();
+  if(!name){toast('⚠️ Nom requis');return}
+  cameras.push({id:camIdCounter++,name,loc:loc||'Non défini',rtsp,online:false,motion:false});
+  document.getElementById('newName').value='';
+  document.getElementById('newLoc').value='';
+  document.getElementById('newRtsp').value='';
+  closeAddCam();
+  renderCamList();
+  updateFilterCams();
+  toast('✅ "'+name+'" ajoutée !');
+}
+
+// ACTIVITY
+function updateFilterCams(){
+  const sel=document.getElementById('filterCam');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Toutes les caméras</option>';
+  cameras.forEach(c=>{
+    const o=document.createElement('option');
+    o.value=c.name; o.textContent=c.name;
+    if(c.name===cur)o.selected=true;
+    sel.appendChild(o);
+  });
+}
+function renderActivity(){
+  const filterCam=document.getElementById('filterCam').value;
+  const filterType=document.getElementById('filterType').value;
+  let list=activities.filter(a=>{
+    if(filterCam && a.cam!==filterCam) return false;
+    if(filterType && a.type!==filterType) return false;
+    return true;
+  });
+  const unread=activities.filter(a=>a.unread).length;
+  const container=document.getElementById('activityList');
+  if(!list.length){
+    container.innerHTML=`<div class="empty-state"><div class="icon">📷</div><p>Aucun appareil photo a été mis en place,<br>ajouter en premier une caméra.</p></div>`;
+    return;
+  }
+  container.innerHTML=list.map(a=>`
+    <div class="activity-item${a.unread?' unread':''}">
+      <div class="activity-thumb">${a.emoji}</div>
+      <div class="activity-body">
+        <div class="activity-title">Mouvement détecté — ${a.cam}</div>
+        <div class="activity-meta">${a.time}</div>
+      </div>
+      ${a.unread?'<div class="activity-tag">NOUVEAU</div>':''}
+    </div>`).join('');
+}
+
+// SIMULATE MOTION
+function simulateMotion(){
+  const cam=cameras.find(c=>c.online);
+  if(!cam)return;
+  cam.motion=true;
+  activities.unshift({id:Date.now(),cam:cam.name,time:"À l'instant",type:"mouvement",emoji:'👤',unread:true});
+  renderCamList();
+  renderActivity();
+  toast('🔔 Mouvement détecté — '+cam.name);
+  setTimeout(()=>{cam.motion=false;renderCamList()},8000);
+  setTimeout(simulateMotion,30000);
+}
+
+// TOAST
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+init();
+</script>
+</body>
+</html>
